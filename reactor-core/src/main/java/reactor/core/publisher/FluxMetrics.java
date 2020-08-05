@@ -224,6 +224,10 @@ final class FluxMetrics<T> extends InternalFluxOperator<T, T> {
 	 */
 	static final String METER_FLOW_DURATION  = ".flow.duration";
 	/**
+	 * Meter that counts the number of time a Mono has completed with a value.
+	 */
+	static final String METER_ON_NEXT  = ".onNext";
+	/**
 	 * Meter that times the delays between each onNext (or between the first onNext and the onSubscribe event).
 	 */
 	static final String METER_ON_NEXT_DELAY  = ".onNext.delay";
@@ -299,6 +303,20 @@ final class FluxMetrics<T> extends InternalFluxOperator<T, T> {
 		}
 
 		return tags;
+	}
+
+	/*
+	 * This method calls the registry, which can be costly. However the onNext signal is expected
+	 * at most once per Subscriber. So the net effect should be that the registry is only called once,
+	 * which is equivalent to registering the meter as a final field, with the added benefit of paying
+	 * that cost only in case of completion (which is not always occurring).
+	 */
+	static void recordOnNext(String name, Tags commonTags, MeterRegistry registry) {
+		Counter.builder(name + METER_ON_NEXT)
+				.tags(commonTags)
+				.description("Counts how many time a Mono sequence has completed with a value emitted")
+				.register(registry)
+				.increment();
 	}
 
 	/*

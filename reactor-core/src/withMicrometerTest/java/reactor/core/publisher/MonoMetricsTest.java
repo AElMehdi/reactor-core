@@ -41,17 +41,7 @@ import reactor.test.publisher.TestPublisher;
 import reactor.util.Metrics;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static reactor.core.publisher.FluxMetrics.Attr;
-import static reactor.core.publisher.FluxMetrics.METER_FLOW_DURATION;
-import static reactor.core.publisher.FluxMetrics.METER_MALFORMED;
-import static reactor.core.publisher.FluxMetrics.METER_ON_NEXT_DELAY;
-import static reactor.core.publisher.FluxMetrics.METER_REQUESTED;
-import static reactor.core.publisher.FluxMetrics.METER_SUBSCRIBED;
-import static reactor.core.publisher.FluxMetrics.REACTOR_DEFAULT_NAME;
-import static reactor.core.publisher.FluxMetrics.TAG_CANCEL;
-import static reactor.core.publisher.FluxMetrics.TAG_KEY_EXCEPTION;
-import static reactor.core.publisher.FluxMetrics.TAG_ON_COMPLETE;
-import static reactor.core.publisher.FluxMetrics.TAG_ON_ERROR;
+import static reactor.core.publisher.FluxMetrics.*;
 import static reactor.test.publisher.TestPublisher.Violation.CLEANUP_ON_TERMINATE;
 
 public class MonoMetricsTest {
@@ -233,6 +223,34 @@ public class MonoMetricsTest {
 		assertThat(malformedMeter).isNotNull();
 		assertThat(malformedMeter.count()).isEqualTo(1);
 		assertThat(errorDropped).hasValue(dropError);
+	}
+
+	@Test
+	public void completeEmpty() {
+		Mono<Integer> source = Mono.empty();
+
+		new MonoMetrics<>(source, registry).block();
+
+		Counter stcNextCounter = registry.find(REACTOR_DEFAULT_NAME + METER_ON_NEXT)
+				.counter();
+
+		assertThat(stcNextCounter)
+				.as("complete without any value")
+				.isNull();
+	}
+
+	@Test
+	public void completeWithOnNext() {
+		Mono<Integer> source = Mono.just(1);
+
+		new MonoMetrics<>(source, registry).block();
+
+		Counter stcNextCounter = registry.find(REACTOR_DEFAULT_NAME + METER_ON_NEXT)
+				.counter();
+
+		assertThat(stcNextCounter.count())
+				.as("complete with onNext")
+				.isEqualTo(1L);
 	}
 
 	@Test
