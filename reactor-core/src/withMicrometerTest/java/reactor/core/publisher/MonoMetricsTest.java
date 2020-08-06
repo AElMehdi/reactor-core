@@ -231,26 +231,44 @@ public class MonoMetricsTest {
 
 		new MonoMetrics<>(source, registry).block();
 
-		Counter stcNextCounter = registry.find(REACTOR_DEFAULT_NAME + METER_ON_NEXT)
-				.counter();
+		Timer stcCompleteCounter = registry.find(REACTOR_DEFAULT_NAME + METER_FLOW_DURATION)
+											.tags(Tags.of(TAG_ON_COMPLETE))
+											.timer();
 
-		assertThat(stcNextCounter)
-				.as("complete without any value")
+		Timer stcCompleteEmptyCounter = registry.find(REACTOR_DEFAULT_NAME + METER_FLOW_DURATION)
+												.tags(Tags.of(TAG_ON_COMPLETE_EMPTY))
+												.timer();
+
+		assertThat(stcCompleteCounter)
+				.as("complete with element")
 				.isNull();
+
+		assertThat(stcCompleteEmptyCounter.count())
+				.as("complete without any element")
+				.isOne();
 	}
 
 	@Test
-	public void completeWithOnNext() {
+	public void completeWithElement() {
 		Mono<Integer> source = Mono.just(1);
 
 		new MonoMetrics<>(source, registry).block();
 
-		Counter stcNextCounter = registry.find(REACTOR_DEFAULT_NAME + METER_ON_NEXT)
-				.counter();
+		Timer stcCompleteCounter = registry.find(REACTOR_DEFAULT_NAME + METER_FLOW_DURATION)
+				.tags(Tags.of(TAG_ON_COMPLETE))
+				.timer();
 
-		assertThat(stcNextCounter.count())
-				.as("complete with onNext")
-				.isEqualTo(1L);
+		Timer stcCompleteEmptyCounter = registry.find(REACTOR_DEFAULT_NAME + METER_FLOW_DURATION)
+				.tags(Tags.of(TAG_ON_COMPLETE_EMPTY))
+				.timer();
+
+		assertThat(stcCompleteCounter.count())
+				.as("complete with element")
+				.isOne();
+
+		assertThat(stcCompleteEmptyCounter)
+				.as("complete without any element")
+				.isNull();
 	}
 
 	@Test

@@ -111,7 +111,7 @@ final class MonoMetrics<T> extends InternalMonoOperator<T, T> {
 				return;
 			}
 			done = true;
-			recordOnComplete(sequenceName, commonTags, registry, subscribeToTerminateSample);
+			recordOnCompleteEmpty(sequenceName, commonTags, registry, subscribeToTerminateSample);
 			actual.onComplete();
 		}
 
@@ -135,7 +135,6 @@ final class MonoMetrics<T> extends InternalMonoOperator<T, T> {
 				return;
 			}
 			done = true;
-			recordOnNext(sequenceName, commonTags, registry);
 			recordOnComplete(sequenceName, commonTags, registry, subscribeToTerminateSample);
 			actual.onNext(t);
 			actual.onComplete();
